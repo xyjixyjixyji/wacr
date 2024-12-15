@@ -1,0 +1,216 @@
+grammar<'input>;
+
+use crate::ast::{
+    Program, Stmt, Expr, BinOp, UnOp, Typ, AsnOp
+};
+use lalrpop_util::ParseError;
+use crate::lex::Token;
+
+extern {
+    type Location = usize;
+    type Error = String;
+
+    enum Token<'input> {
+        "int" => Token::Int,
+        "bool" => Token::Bool,
+        "true" => Token::True,
+        "false" => Token::False,
+        ";" => Token::Semicolon,
+        "," => Token::Comma,
+
+        // BinOp
+        "+" => Token::Plus,
+        "-" => Token::Minus,
+        "*" => Token::Asterisk,
+        "/" => Token::Div,
+        "<" => Token::LessThan,
+        ">" => Token::GreaterThan,
+        "==" => Token::Eq,
+        "!=" => Token::Neq,
+        "&&" => Token::And,
+        "||" => Token::Or,
+
+        // UnOp
+        "!" => Token::Not,
+        "~" => Token::BitNot,
+
+        // AsnOp
+        "=" => Token::Assgn,
+        "+=" => Token::PlusEq,
+        "-=" => Token::MinusEq,
+        "*=" => Token::TimesEq,
+        "/=" => Token::DivEq,
+        
+        // control
+        "return" => Token::Return,
+        "if" => Token::If,
+        "else" => Token::Else,
+        "while" => Token::While,
+        "for" => Token::For,
+
+        "ident" => Token::Ident(<&'input str>),
+        "number" => Token::Number(i64),
+        "{" => Token::LBrace,
+        "}" => Token::RBrace,
+        "(" => Token::LParen,
+        ")" => Token::RParen,
+    }
+}
+
+pub Program: Program = {
+    "int" <i:Ident> "(" ")" <block:Block> =>? {
+        match i.as_str() {
+            "main" => {
+                match block {
+                    Stmt::Block(s) => Ok(s),
+                    _ => Err(ParseError::User{error: "Main block not well formed".to_string()})
+                }
+            },
+            _ => Err(ParseError::User{error: "Missing main in parser".to_string()})
+        } 
+    }
+};
+
+Block: Stmt = {
+    "{" <Stmts> "}" => Stmt::Block(<>),
+}
+
+Stmts: Vec<Stmt> = {
+    => vec![], // Handle an empty sequence of statements
+    <stmt:Stmt> <rest:Stmts> => {
+        let mut all_stmts = vec![stmt];
+        all_stmts.extend(rest);
+        all_stmts
+    },
+}
+
+Stmt: Stmt = {
+    "if" "(" <e: Expr> ")" <s1: Stmt> "else" <s2:Stmt> => Stmt::If(e, Box::new(s1), Option::Some(Box::new(s2))),
+
+    "while" "("  <e:Expr> ")" <s:Stmt> => Stmt::While(e, Box::new(s)),
+
+    "for" "(" <s1:SimpOpt> ";" <e:Expr> ";" <s2:SimpOpt> ")" <s3:Stmt> => Stmt::For(s1, e, s2, Box::new(s3)),
+
+    <SimpStmt> => <>,
+    <Block> => <>,
+}
+
+SimpStmt: Stmt = {
+    <Simp> ";" => <>,
+    "return" <e:Expr> ";" => Stmt::Ret(e),
+}
+
+SimpOpt: Option<Box<Stmt>> = {
+    => Option::None,
+    <Simp> => Option::Some(Box::new(<>)),
+}
+
+Simp: Stmt = {
+    <t:Typ> <v:Ident> => Stmt::Decl(t, v, None),
+    <t:Typ> <v:Ident> "=" <e:Expr> => Stmt::Decl(t, v, Some(e)),
+    <l:SubExp> <o:AsnOp> <e:Expr> => Stmt::Asgn(l, o, e), // lvalue is the l, we are using SubExp to avoid ambiguity
+    <Expr> => Stmt::Expr(<>),
+}
+
+Expr: Expr = {
+    #[precedence(level="0")]
+    SubExp => <>,
+
+    #[precedence(level="1")]
+    #[assoc(side="right")]
+    <o:UnOp> <e:Expr> => match (o,&e) {
+        (UnOp::Neg, Expr::Number(a)) => Expr::Number((-1 * (*a as i64)) as i32),
+        (UnOp::Not, Expr::True) => Expr::False,
+        (UnOp::Not, Expr::False) => Expr::True,
+        (UnOp::BitNot, Expr::Number(a)) => Expr::Number((!a) as i32),
+        _ => Expr::Unop(o, Box::new(e)),
+    },
+
+    #[precedence(level="2")]
+    #[assoc(side="left")]
+    <l:Expr> <o:Order0BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
+
+    #[precedence(level="3")]
+    #[assoc(side="left")]
+    <l:Expr> <o:Order1BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
+
+    #[precedence(level="5")]
+    #[assoc(side="left")]
+    <l:Expr> <o:Order2BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
+
+    #[precedence(level="6")]
+    #[assoc(side="left")]
+    <l:Expr> <o:Order3BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
+
+    #[precedence(level="10")]
+    #[assoc(side="left")]
+    <l:Expr> <o:Order4BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
+
+    #[precedence(level="11")]
+    #[assoc(side="left")]
+    <l:Expr> <o:Order5BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
+
+}
+
+SubExp : Expr = {
+    "(" <Expr> ")" => <>,
+    <n:Number> => Expr::Number(n as i32),
+    <v:Ident> => Expr::Variable(v),
+    "true" => Expr::True,
+    "false" => Expr::False,
+}
+
+Typ: Typ = {
+    "int" => Typ::Int,
+    "bool" => Typ::Bool,
+};
+
+UnOp: UnOp = {
+    "!" => UnOp::Not,
+    "~" => UnOp::BitNot,
+    "-" => UnOp::Neg,
+};
+
+Order0BinOp : BinOp = {
+    "*" => BinOp::Mul,
+    "/" => BinOp::Div,
+}
+
+Order1BinOp : BinOp = {
+    "+" => BinOp::Add,
+    "-" => BinOp::Sub,
+}
+
+Order2BinOp: BinOp = {
+    "<" => BinOp::LessThan,
+    ">" => BinOp::GreaterThan,
+}
+
+Order3BinOp: BinOp = {
+    "==" => BinOp::EqEq,
+    "!=" => BinOp::Uneq,
+}
+
+Order4BinOp: BinOp = {
+    "&&" => BinOp::LogicalAnd,
+}
+
+Order5BinOp: BinOp = {
+    "||" => BinOp::LogicalOr,
+}
+
+AsnOp: AsnOp = {
+    "="  => AsnOp::Eq,
+    "+=" => AsnOp::PlusEq,
+    "-=" => AsnOp::MinusEq,
+    "*=" => AsnOp::TimesEq,
+    "/=" => AsnOp::DivEq,
+};
+
+Ident: String = {
+    <i: "ident"> => i.to_owned(),
+};
+
+Number: i64 = {
+    <n: "number"> => n.into_number().unwrap(),
+};

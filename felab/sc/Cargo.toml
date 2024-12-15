@@ -1,0 +1,19 @@
+[package]
+name = "sc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+enum-as-inner = "0.6.0"
+lalrpop-util = "0.20.0"
+logos = "0.12.1" # Note this is a version behind because I couldn't figure out 0.13
+strum_macros = "0.25.3"
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = "1.0.61"
+log = "0.4.14"
+env_logger = { version = "0.10.0" }
+
+[build-dependencies]
+lalrpop = "0.20.0"
+
