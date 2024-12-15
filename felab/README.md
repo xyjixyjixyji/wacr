@@ -1,23 +1,65 @@
-# *F*ront*End* Lab
+# Frontend Lab <span style="color:green">(EASY)</span>.
 
-The FrontEnd lab is not a very tough lab, it only shows you how to transform
-a language from text into a interpretable Abstract Syntax Tree (**AST**).
+[toc]
 
-Finishing this is just like filling out the blanks, should be easy and chill,
-probably you will even learn nothing!
+In this tutorial, we are going to implement a compiler for language **SimpC**,
+which is a very simple language for purely educational purpose.
 
-But this would be the base of our interesting optimizations!
+First of all, we are **NOT** planning to release the solution for the labs, since most universities
+have labs similar to this structure.
 
-## Grammar Supported
+We also **STRONGLY DISCOURAGE** you to release your solution on GitHub, students
+might look at your solution and copy it!
 
-We implements a very simple language named **SimpC**, with **no nested IfElse**,
-**no function calls**, **no dynamic memory**, and **limited number of operators**.
+But we **ENCOURAGE** you to discuss your solution in a high level way online,
+which aids learning in general.
 
-Since the core of modern compiler design is not at its front end in my opinion,
-we uses this simple language to simplify the frontend for you to
-read through.
+## Introduction (Please read through)
+
+In this lab, you will implement the **frontend** for your **SimpC** compiler,
+we have written the **lexer and parser** for you!
+
+Your work will contains two part, _AST elaboration_ and _type checking_.
+
+We recommend you to do this lab in the following order:
+
+1. Reads the front end part of the compiler (_scc/src/compiler/frontend_),
+   especially take a look at the **Compiler trait**.
+2. Implement Elaboration (_scc/src/compiler/frontend/parse/elab.rs_), the
+   requirements will be described later.
+3. Implement Typechecking (_scc/src/compiler/frontend/typecheck.rs_), the
+   requirements will be described later.
+
+However, please know that you are **NOT** required to follow the structure
+we provided to you. You are solely on your own! But please pay attention that
+the future labs **WILL** assume that it follows similar structures.
+
+### Knowledge
+
+In this section, we are going to go through some of the necessary knowledge
+for the frontend lab.
 
 ### Grammar
+
+#### BNF
+
+todo
+
+#### Precedence and Associates
+
+todo
+
+### Elaboration
+
+todo
+
+### Typechecking
+
+todo
+
+### Grammar Supported
+
+#### Grammar
 
 Below is a very typical BNF you would see in almost all programming
 languages. But for this tutorial, I purposefully omitted some **important**
@@ -28,8 +70,11 @@ things for the grammar.
     about the backend.
 3.  No dynamic memory -> easier memory management
     1.  I plan to have a Garbage Collection Lab in the future.
-4.  Limited number of operators -> easier implementation on the backend, we are
-    not using this language anyways!
+
+Also, we purposefully omitted operators like **&, |, ^, <<, >>**, this makes
+it not fully-functional, but reduce the work you are going to do when
+implementing the backend. If you want to add them, you are free to modify
+the frontend to support it, it should be **fairly easy to do**.
 
 ```
 <program>  ::= int ident () <block> (type checker should check the ident is "main")
@@ -58,7 +103,7 @@ things for the grammar.
 <unop>     ::= ! | ~ | -
 ```
 
-### Precedence and Associates
+#### Precedence and Associates
 
 ```
 ----------------------------------------

@@ -1,0 +1,4 @@
+// Fail
+int mainmain() {
+    return 0;
+}

@@ -1,6 +1,6 @@
 #![allow(clippy::upper_case_acronyms)]
 use enum_as_inner::EnumAsInner;
-use logos::{Lexer, Logos};
+use logos::{Lexer, Logos, Skip};
 use std::{fmt, num::ParseIntError};
 use strum_macros::AsRefStr;
 
@@ -133,4 +133,7 @@ pub enum Token<'a> {
     #[regex(r"[ \t\n\v\r\f]", logos::skip)] // Whitespace
     #[regex(r#"[^\x00-\x7F]"#)] // Error on non ascii characters
     Error,
+
+    #[regex(r#"(//)[^\n]*"#, logos::skip)]
+    Comment, // single line
 }

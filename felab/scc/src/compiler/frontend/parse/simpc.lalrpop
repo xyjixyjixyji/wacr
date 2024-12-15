@@ -1,10 +1,9 @@
 grammar<'input>;
 
-use crate::ast::{
-    Program, Stmt, Expr, BinOp, UnOp, Typ, AsnOp
+use crate::compiler::frontend::{
+    Program, Stmt, Expr, BinOp, UnOp, Typ, AsnOp, Token,
 };
 use lalrpop_util::ParseError;
-use crate::lex::Token;
 
 extern {
     type Location = usize;
@@ -76,7 +75,7 @@ Block: Stmt = {
 }
 
 Stmts: Vec<Stmt> = {
-    => vec![], // Handle an empty sequence of statements
+    => vec![],
     <stmt:Stmt> <rest:Stmts> => {
         let mut all_stmts = vec![stmt];
         all_stmts.extend(rest);
@@ -108,7 +107,7 @@ SimpOpt: Option<Box<Stmt>> = {
 Simp: Stmt = {
     <t:Typ> <v:Ident> => Stmt::Decl(t, v, None),
     <t:Typ> <v:Ident> "=" <e:Expr> => Stmt::Decl(t, v, Some(e)),
-    <l:SubExp> <o:AsnOp> <e:Expr> => Stmt::Asgn(l, o, e), // lvalue is the l, we are using SubExp to avoid ambiguity
+    <l:SubExp> <o:AsnOp> <e:Expr> => Stmt::Asgn(l, o, e),
     <Expr> => Stmt::Expr(<>),
 }
 
@@ -134,19 +133,19 @@ Expr: Expr = {
     #[assoc(side="left")]
     <l:Expr> <o:Order1BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
 
-    #[precedence(level="5")]
+    #[precedence(level="4")]
     #[assoc(side="left")]
     <l:Expr> <o:Order2BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
 
-    #[precedence(level="6")]
+    #[precedence(level="5")]
     #[assoc(side="left")]
     <l:Expr> <o:Order3BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
 
-    #[precedence(level="10")]
+    #[precedence(level="6")]
     #[assoc(side="left")]
     <l:Expr> <o:Order4BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
 
-    #[precedence(level="11")]
+    #[precedence(level="7")]
     #[assoc(side="left")]
     <l:Expr> <o:Order5BinOp> <r:Expr> => Expr::Binop(Box::new(l), o, Box::new(r)),
 
