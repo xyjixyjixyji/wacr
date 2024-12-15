@@ -6,7 +6,7 @@ use logos::{Logos, Span};
 use crate::{Emission, SccArguments};
 
 use super::{
-    frontend::{ElabProgram, Program, ProgramParser, Token, TypeChecker},
+    frontend::{elab_program, ElabProgram, Program, ProgramParser, Token, TypeChecker},
     Compiler,
 };
 
@@ -102,8 +102,6 @@ impl SimpCCompiler {
 
     /// Elaborate the AST to its final stage
     fn elaborate_program(&self, prog: Program) -> Result<ElabProgram> {
-        // Begin your solution
-        unimplemented!("Implement this!")
-        // End your solution
+        elab_program(prog)
     }
 }

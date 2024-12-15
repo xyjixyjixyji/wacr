@@ -1,4 +1,6 @@
-use super::ast::{Expr, Typ, Var};
+use anyhow::Result;
+
+use super::ast::{Expr, Program, Typ, Var};
 
 pub type ElabProgram = Vec<ElabStmt>;
 
@@ -27,3 +29,9 @@ pub enum ElabStmts {
     // Normal stmts that do not introduce a new scope
     NormalStmts(Vec<ElabStmt>),
 }
+
+// Begin your solution
+pub(crate) fn elab_program(prog: Program) -> Result<ElabProgram> {
+    todo!("Implement this!")
+}
+// End your solution
