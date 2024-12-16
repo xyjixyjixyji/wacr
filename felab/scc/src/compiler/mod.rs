@@ -1,10 +1,13 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 mod backend;
-mod compiler;
+mod simpcc;
 mod frontend;
 mod middleend;
 
 use anyhow::Result;
-pub use compiler::SimpCCompiler;
+pub use simpcc::SimpCCompiler;
 
 pub trait Compiler {
     type NotElaboratedProgram;

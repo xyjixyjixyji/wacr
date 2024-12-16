@@ -31,7 +31,7 @@ impl Compiler for SimpCCompiler {
 
     fn typecheck(&self, program: &ElabProgram) -> Result<bool> {
         let mut typechecker = self.typechecker.borrow_mut();
-        typechecker.typecheck(&program)
+        typechecker.typecheck(program)
     }
 }
 

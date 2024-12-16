@@ -1,6 +1,6 @@
 #![allow(clippy::upper_case_acronyms)]
 use enum_as_inner::EnumAsInner;
-use logos::{Lexer, Logos, Skip};
+use logos::{Lexer, Logos};
 use std::{fmt, num::ParseIntError};
 use strum_macros::AsRefStr;
 
