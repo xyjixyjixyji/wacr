@@ -22,7 +22,7 @@ impl TypeChecker {
     /// Returns true if type check passes, false if not
     /// Also returns the new variables that are _defined_ in the statements
     fn typecheck_stmts(&mut self, stmt: &ElabStmt) -> Result<(bool, Vec<Var>)> {
-        unimplemented!("Implement stmt typechecker!")
+        unimplemented!("Implement stmts typechecker!")
     }
 
     /// Type check the statement

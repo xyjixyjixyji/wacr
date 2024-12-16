@@ -1,6 +1,19 @@
 # Frontend Lab <span style="color:green">(EASY)</span>.
 
-[toc]
+1. [Frontend Lab (EASY).](#frontend-lab-easy)
+    1. [Introduction (Please read through)](#introduction-please-read-through)
+        1. [Knowledge](#knowledge)
+        2. [Grammar](#grammar)
+            1. [BNF](#bnf)
+            2. [Precedence and Associates](#precedence-and-associates)
+        3. [Elaboration](#elaboration)
+        4. [Typechecking](#typechecking)
+        5. [Grammar Supported](#grammar-supported)
+            1. [Grammar](#grammar-1)
+            2. [Precedence and Associates](#precedence-and-associates-1)
+    2. [Let's get started!](#lets-get-started)
+        1. [Elaboration](#elaboration-1)
+        2. [Typechecking](#typechecking-1)
 
 In this tutorial, we are going to implement a compiler for language **SimpC**,
 which is a very simple language for purely educational purpose.
@@ -121,3 +134,87 @@ Op                            Associates
 ```
 
 ## Let's get started!
+
+### Elaboration
+
+Elaboration makes statements simpler. Language designer normally provides
+many syntaxs for programmers to use, but many of the syntaxs are semantically
+the same.
+
+For example,
+
+1. `a += 1` is the same as `a = a + 1`.
+2. `int a = &p` is the "same" as `int *a = &p`, but compiler needs type information
+   indicating that a is a syntatic sugar reference.
+
+But for compiler engineers, we want the AST to be as simple as possible. Therefore,
+we add an extra pass to minimize the AST and make it easier to process in the
+later pipeline stages.
+
+In this lab, elboration does three things.
+
+1. For all assignments that uses _AsnOp_, make it a simple assignments.
+    1. e.g. `a += 1` -> `a = a + 1`
+2. Eliminate for-loop and make it a while-loop, since essentially there is no difference
+3. Providing scoping information for typechecker
+
+    1. This is very handy since for an invalid program like below
+
+        ```
+        {
+          int x = 1;
+        }
+
+        x = 2;
+        ```
+
+        The typechecker needs to know that the variable _x_ is no longer _defined_
+        in later context.
+
+To be more specific, you need to transform the `Program` provided in the AST
+into `ElabProgram`.
+
+Note that not doing elaboration is **TOTALLY FINE**, but it will be a pain in
+the ass for you to typecheck and generate IR. So please do this, and it is
+**REQUIRED** for you to move forward.
+
+### Typechecking
+
+Typechecker is the guard for defined program behavior. It rejects code that
+is syntatically correct but semantically wrong.
+
+For example, the program below can easier pass the parser, but is semantically
+wrong since `x` is not _defined_ when used in statement `x = 2`
+
+```
+{
+    int x = 1;
+}
+
+x = 2;
+```
+
+In compiler theory, typechecker checks a series of [inference rules](https://en.wikipedia.org/wiki/Rule_of_inference),
+which gives you the _premises_ and _conclusions_ for each rule.
+
+Take a simple rule as an example
+
+-   Any assignment should have the same type for the left hand side and right hand side.
+    -   This means `int x = 1;` could pass, since both are typed `int`.
+    -   `int x = true;` could not pass, since lhs is `int` while rhs is `bool`.
+-   Any used variable should be _defined_ before _use_.
+
+    -   This means
+        ```
+        int y;
+        int x = y;
+        ```
+        cannot pass since `y` is not _defined_ but only _declared_ before its usage.
+    -   But
+        ```
+        int y = 0;
+        int x = y;
+        ```
+        could pass since `y` is _defined_ before assigned to `x`.
+
+-   The expression inside the `if` clause should be typed `bool`
