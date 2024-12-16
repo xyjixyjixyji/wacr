@@ -1,19 +1,20 @@
 # Frontend Lab <span style="color:green">(EASY)</span>.
 
 1. [Frontend Lab (EASY).](#frontend-lab-easy)
-    1. [Introduction (Please read through)](#introduction-please-read-through)
-        1. [Knowledge](#knowledge)
-        2. [Grammar](#grammar)
+   1. [Introduction (Please read through)](#introduction-please-read-through)
+      1. [Knowledge](#knowledge)
+         1. [Abstract Syntax Tree (AST)](#abstract-syntax-tree-ast)
+         2. [Grammar](#grammar)
             1. [BNF](#bnf)
             2. [Precedence and Associates](#precedence-and-associates)
-        3. [Elaboration](#elaboration)
-        4. [Typechecking](#typechecking)
-        5. [Grammar Supported](#grammar-supported)
-            1. [Grammar](#grammar-1)
-            2. [Precedence and Associates](#precedence-and-associates-1)
-    2. [Let's get started!](#lets-get-started)
-        1. [Elaboration](#elaboration-1)
-        2. [Typechecking](#typechecking-1)
+         3. [Elaboration](#elaboration)
+         4. [Typechecking](#typechecking)
+      2. [Grammar Supported](#grammar-supported)
+         1. [Grammar](#grammar-1)
+         2. [Precedence and Associates](#precedence-and-associates-1)
+   2. [Let's get started!](#lets-get-started)
+      1. [Elaboration](#elaboration-1)
+      2. [Typechecking](#typechecking-1)
 
 In this tutorial, we are going to implement a compiler for language **SimpC**,
 which is a very simple language for purely educational purpose.
@@ -52,21 +53,71 @@ the future labs **WILL** assume that it follows similar structures.
 In this section, we are going to go through some of the necessary knowledge
 for the frontend lab.
 
-### Grammar
+> The knowledge is not introduced **formally** and **100% accurate**, so please
+> refer to the link provided in each section if you want to learn more.
 
-#### BNF
+#### Abstract Syntax Tree (AST)
+
+[AST](https://en.wikipedia.org/wiki/Abstract_syntax_tree) is a way to describe the **parsed** program text. It is logically a **tree-structured** thing,
+but in actual program you can write it in any form.
+
+We are giving a simple example here. Consider a program with **expressions** of
+only **binary operations (such as _a + b_) and variable (such as _a_)**.
+
+```
+(a + b) + b // there is no ";", so this is _NOT_ a stmt.
+```
+
+Will be parsed into AST in the following form
+
+```
+(a + b) +  // Expr::BinOp(Expr::BinOp(a, +, b), +, b) (a and b are expressions as well)
+```
+
+You can see it is by nature a **recursive** structure, just like a tree. Please pay
+attention here that noticing AST's **recursive nature** is very crucial to write
+your typechecker and elaboration.
+
+So spent some time on this if you do not understand it.
+
+#### Grammar
+
+##### BNF
+
+[BNF](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form) is a classic way to describe a syntax of a formal language.
+
+It is written as `<symbol> ::= __expression__`, on the left hand side it is normally a
+**non-terminal** symbol and symbol `::=` means left hand side **must** be replaced by
+the right hand side. On the right hand side it is normally **terminal** or **non-terminal**
+symbols, using `"|"` indicating choices.
+
+For example,
+
+```
+<stmts>    ::= ϵ
+           |   <stmt> <stmts>
+<stmt>     ::= <simp> ;
+           |   <block> ;
+           |   <control> ;
+```
+
+means a `stmt` is one of `simp`, `block`, or `control`, and `stmts` could be either
+`empty` or a sequence of `stmt`. (For what are `simp`, `block` and `control`, see below.)
+
+In this tutorial, we use BNF to specify our language **SimpC**. If you don't
+quite understand BNF, take a look at the actual BNF we are giving out in later
+sections.
+
+##### Precedence and Associates
+
+Precedence and associates is crucial for compiler **parser**. They specify how
+the parser is going to interpret the tokens and form AST.
+
+#### Elaboration
 
 todo
 
-#### Precedence and Associates
-
-todo
-
-### Elaboration
-
-todo
-
-### Typechecking
+#### Typechecking
 
 todo
 
@@ -76,7 +127,8 @@ todo
 
 Below is a very typical BNF you would see in almost all programming
 languages. But for this tutorial, I purposefully omitted some **important**
-things for the grammar.
+things for the grammar. And it is a **[context-free grammar](https://en.wikipedia.org/wiki/Context-free_grammar)**, i am not
+elaborating on this now, but please take a look if you are curious.
 
 1.  No nested IfElse and every if must have an else branch -> easier lexer, you don't have to worry about lexer tricks.
 2.  No function calls -> easier ABI handling, you don't need to care **too** much
