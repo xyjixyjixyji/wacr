@@ -1,20 +1,20 @@
 # Frontend Lab <span style="color:green">(EASY)</span>.
 
 1. [Frontend Lab (EASY).](#frontend-lab-easy)
-   1. [Introduction (Please read through)](#introduction-please-read-through)
-      1. [Knowledge](#knowledge)
-         1. [Abstract Syntax Tree (AST)](#abstract-syntax-tree-ast)
-         2. [Grammar](#grammar)
-            1. [BNF](#bnf)
-            2. [Precedence and Associates](#precedence-and-associates)
-         3. [Elaboration](#elaboration)
-         4. [Typechecking](#typechecking)
-      2. [Grammar Supported](#grammar-supported)
-         1. [Grammar](#grammar-1)
-         2. [Precedence and Associates](#precedence-and-associates-1)
-   2. [Let's get started!](#lets-get-started)
-      1. [Elaboration](#elaboration-1)
-      2. [Typechecking](#typechecking-1)
+    1. [Introduction (Please read through)](#introduction-please-read-through)
+        1. [Knowledge](#knowledge)
+            1. [Abstract Syntax Tree (AST)](#abstract-syntax-tree-ast)
+            2. [Grammar](#grammar)
+                1. [BNF](#bnf)
+                2. [Precedence and Associates](#precedence-and-associates)
+            3. [Elaboration](#elaboration)
+            4. [Typechecking](#typechecking)
+        2. [Grammar Supported](#grammar-supported)
+            1. [Grammar](#grammar-1)
+            2. [Precedence and Associates](#precedence-and-associates-1)
+    2. [Let's get started!](#lets-get-started)
+        1. [Elaboration](#elaboration-1)
+        2. [Typechecking](#typechecking-1)
 
 In this tutorial, we are going to implement a compiler for language **SimpC**,
 which is a very simple language for purely educational purpose.
@@ -249,7 +249,7 @@ x = 2;
 In compiler theory, typechecker checks a series of [inference rules](https://en.wikipedia.org/wiki/Rule_of_inference),
 which gives you the _premises_ and _conclusions_ for each rule.
 
-Take a simple rule as an example
+Take some simple rules as an example
 
 -   Any assignment should have the same type for the left hand side and right hand side.
     -   This means `int x = 1;` could pass, since both are typed `int`.
@@ -270,3 +270,28 @@ Take a simple rule as an example
         could pass since `y` is _defined_ before assigned to `x`.
 
 -   The expression inside the `if` clause should be typed `bool`
+
+**You are required to implement the following rules for your typechecker**
+Below are the inference rules in human language that you are required to implement.
+
+1. The function entry point is named "main".
+2. The final return value of "main" is typed `int`.
+3. All variable are _defined_ before _used_ (not _declared_).
+4. All variable can only be _declared_ **or** _defined_ once.
+5. For assignments, left hand side and right hand side need to have the same type.
+6. For if/while, the expression for loop condition needs to have type `bool`.
+7. Numbers are typed `int`, `true` and `false` are typed `bool`.
+8. Unary operators need to operate on the correct type, for example `!` needs
+   to operate on type `bool`.
+9. Binary operation `a op b` requires `a` and `b` to have the same type.
+10. Binary operators need to operate on the correct type, fpr example `<` needs
+    to operate on type `int`.
+    - If you want to implement bit-wise operators such as `&`, they need to
+      operate on type `bool`.
+
+**Hint(s)**
+
+1. For `IfElse`, the defined variable are considered as the **intersection** of
+   both branches.
+2. Remember AST has a recursive (tree-like) nature, and our provided function
+   signatures (such as `tc_stmt()`) reflect that.
