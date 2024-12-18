@@ -16,26 +16,21 @@
         1. [Elaboration](#elaboration-1)
         2. [Typechecking](#typechecking-1)
 
-In this tutorial, we are going to implement a compiler for language **SimpC**,
-which is a very simple language for purely educational purpose.
-
-First of all, we are **NOT** planning to release the solution for the labs, since most universities
-have labs similar to this structure.
-
-We also **STRONGLY DISCOURAGE** you to release your solution on GitHub, students
-might look at your solution and copy it!
-
-But we **ENCOURAGE** you to discuss your solution in a high level way online,
-which aids learning in general.
-
 ## Introduction (Please read through)
 
-In this lab, you will implement the **frontend** for your **SimpC** compiler,
-we have written the **lexer and parser** for you!
+In this lab, you will implement the frontend for a simple educational language called SimpC.
+The frontend includes both an elaboration phase and a typechecking phase. We have already provided the lexer and parser, so your primary tasks are:
 
-Your work will contains two part, _AST elaboration_ and _type checking_.
+1.  Elaboration: Transform the parsed Abstract Syntax Tree (AST) into a simpler, more uniform AST (which we call ElabProgram).
+2.  Typechecking: Validate that the program is semantically correct (e.g., variables are defined before use, types match up, etc.).
 
-We recommend you to do this lab in the following order:
+**Important Notes:**
+
+1. We will not provide reference solutions, as many universities have similar labs and we want to avoid plagiarism.
+2. We strongly discourage posting your solution online (such as GitHub) to prevent cheating.
+3. We encourage high-level discussion and conceptual explanations online, as it aids collective learning.
+
+**Recommended workflow:**
 
 1. Reads the front end part of the compiler (_scc/src/compiler/frontend_),
    especially take a look at the **Compiler trait**.
@@ -58,25 +53,22 @@ for the frontend lab.
 
 #### Abstract Syntax Tree (AST)
 
-[AST](https://en.wikipedia.org/wiki/Abstract_syntax_tree) is a way to describe the **parsed** program text. It is logically a **tree-structured** thing,
-but in actual program you can write it in any form.
+[AST](https://en.wikipedia.org/wiki/Abstract_syntax_tree) is a tree-like representation of a program’s structure after parsing. Each node represents a language construct, such as an expression or a statement.
 
-We are giving a simple example here. Consider a program with **expressions** of
-only **binary operations (such as _a + b_) and variable (such as _a_)**.
-
-```
-(a + b) + b // there is no ";", so this is _NOT_ a stmt.
-```
+For example, consider the expression `(a + b) + b` (without a trailing semicolon, so it's just an expression, not a statement):
 
 Will be parsed into AST in the following form
 
 ```
-(a + b) +  // Expr::BinOp(Expr::BinOp(a, +, b), +, b) (a and b are expressions as well)
+Expr::BinOp(
+    Expr::BinOp(Expr::Ident("a"), "+", Expr::Ident("b")),
+    "+",
+    Expr::Ident("b")
+)
 ```
 
-You can see it is by nature a **recursive** structure, just like a tree. Please pay
-attention here that noticing AST's **recursive nature** is very crucial to write
-your typechecker and elaboration.
+Notice the **recursive** nature of the AST: expressions contain other expressions.
+Understanding this recursion is essential for elaboration and typechecking.
 
 So spent some time on this if you do not understand it.
 
@@ -101,25 +93,29 @@ For example,
            |   <control> ;
 ```
 
-means a `stmt` is one of `simp`, `block`, or `control`, and `stmts` could be either
-`empty` or a sequence of `stmt`. (For what are `simp`, `block` and `control`, see below.)
+This means stmts can be empty (ϵ) or a <stmt> followed by more <stmts>. Similarly, stmt could be a simp, block, or control statement, each ending with a semicolon.
 
-In this tutorial, we use BNF to specify our language **SimpC**. If you don't
-quite understand BNF, take a look at the actual BNF we are giving out in later
-sections.
+In this lab, we give you the BNF for SimpC to understand what the language constructs look like and how they form a valid program.
 
 ##### Precedence and Associates
 
 Precedence and associates is crucial for compiler **parser**. They specify how
 the parser is going to interpret the tokens and form AST.
 
+Operator precedence and associativity rules determine how operators group within expressions (e.g., \* has higher precedence than +, and - is left-associative). We specify these rules to ensure the parser generates a consistent AST for expressions.
+
 #### Elaboration
 
-todo
+Elaboration simplifies complex language constructs into simpler ones. Although we haven't fully detailed it yet, elaboration is the next major step after parsing to “normalize” the AST for easier typechecking and further compilation.
+
+For example, a elaboration pass could make a ternary expression `a | b` into
+`a ? True : b` to make sure short-cut of logical or work.
 
 #### Typechecking
 
-todo
+Typechecking ensures that the program is semantically correct. Even if the program
+s syntactically valid (it parsed correctly), it may still be semantically invalid
+(for example, using a variable before defining it).
 
 ### Grammar Supported
 
@@ -206,8 +202,9 @@ later pipeline stages.
 In this lab, elboration does three things.
 
 1. For all assignments that uses _AsnOp_, make it a simple assignments.
-    1. e.g. `a += 1` -> `a = a + 1`
+    - e.g. `a += 1` -> `a = a + 1`
 2. Eliminate for-loop and make it a while-loop, since essentially there is no difference
+    - Think of how a `for (init; cond; incr) body` should look like in a `while-loop` form
 3. Providing scoping information for typechecker
 
     1. This is very handy since for an invalid program like below
@@ -295,3 +292,14 @@ Below are the inference rules in human language that you are required to impleme
    both branches.
 2. Remember AST has a recursive (tree-like) nature, and our provided function
    signatures (such as `tc_stmt()`) reflect that.
+3. Keep track of variable definitions in a scoped symbol table so that out-of-scope variables can be easily detected.
+
+---
+
+In short:
+
+**Parsing**: Converts source code into an AST.
+**Elaboration**: Simplifies and normalizes the AST (flattening loops, normalizing assignments, establishing clear scoping).
+**Typechecking**: Validates that the simplified AST follows type and definition rules.
+
+We encourage you to revisit theoretical concepts if you find anything unclear, and to proceed step-by-step. Good luck!
